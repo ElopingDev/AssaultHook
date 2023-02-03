@@ -1,42 +1,54 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "pch.h"
 #include <windows.h>
 #include <iostream>
+#include <fcntl.h>
+#include "functions.h"
 
+
+int ammo;
 BOOL UninjectKey(int key)
 {
     return (GetAsyncKeyState(key) & 0x8000) != 0;
 }
 
-// Function to change memory value at a specified address
-void setMem(DWORD baseaddress, int value, DWORD offset1, DWORD offset2, bool msg)
-{
-    
-	DWORD* address = (DWORD*)((*(DWORD*)(baseaddress + offset1)) + offset2); // Calculating the final address by adding the baseaddress, offset1 and offset2
 
-    
-	if (msg) // If the msg variable is true, display a message box with the final address
-	{
-		char szTest[10];
-		sprintf_s(szTest, "The final address is : %X", address);
-		MessageBoxA(NULL, szTest, NULL, NULL);
-	}
 
-    
-	*(int*)address = value; // Change the value at the final address to the specified value
-	
-}
+
 
 // Function to patch memory values (called at DLL_PRROCESS_ATTACH)
 DWORD Patch()
 {
     
-	 // Call the setMem function with baseaddress, value, offset1, offset2 and msg values
+    MessageBoxA(NULL, "AssaultHook has been injected.", "Injection", MB_ICONINFORMATION);
+    AllocConsole();
+    FILE* console;
+    freopen_s(&console, "CONOUT$", "w", stdout);
 
+    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hStdout, 0x0C);
+    std::cout << R"(
+ /\_/\
+( o.o ) AssaultHook
+ > ^ < 
+)" 
+    << std::endl;
+
+    std::cout << "Welcome to Assault Hook!" << std::endl;
+    
+    // Actual Patching
     while (!UninjectKey(VK_DELETE))
     {
-        setMem(0x00400000, 666, 0x18AC00, 0x140, false); // Call the setMem function until the uninject key is pressed
+        
+
+        readMem(0x00400000, 0x18AC00, 0x140, ammo);
+        std::cout << ammo << std::endl;
+        setMem(0x00400000, 666, 0x18AC00, 0x140); // Call the setMem function until the uninject key is pressed
         Sleep(10);
     }
+
+    MessageBoxA(NULL, "Successfully uninjected. Please make sure to restart the game before injecting again.", "Uninjection", MB_ICONINFORMATION);
+    FreeConsole();
     FreeLibraryAndExitThread((HMODULE)GetModuleHandle(0), 0);
 
 	return 0; // Return 0 after the function has been executed (the code will keep running, not exit like i thought it would)
