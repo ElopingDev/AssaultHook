@@ -7,14 +7,11 @@
 
 
 int ammo;
+
 BOOL UninjectKey(int key)
 {
     return (GetAsyncKeyState(key) & 0x8000) != 0;
 }
-
-
-
-
 
 // Function to patch memory values (called at DLL_PRROCESS_ATTACH)
 DWORD Patch()
